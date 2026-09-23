@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+/*
+ * Tokens visuais do Velo Checkout.
+ * Neutros levemente quentes, um acento verde-petróleo para o painel e cores
+ * de status com contraste AA sobre as superfícies em que são usadas.
+ * "demo" tem cor própria (violeta) para nunca ser confundida com status real.
+ */
+@theme {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --color-canvas: #f4f4f1;
+  --color-surface: #ffffff;
+  --color-muted: #efefeb;
+  --color-line: #e2e2dc;
+  --color-line-strong: #cfcfc7;
+
+  --color-ink: #17191c;
+  --color-ink-soft: #454a52;
+  --color-ink-muted: #62676f;
+
+  --color-accent: #0f6b55;
+  --color-accent-strong: #0b5443;
+  --color-accent-soft: #e5f2ed;
+
+  --color-success: #0f7a4f;
+  --color-success-soft: #e7f5ee;
+  --color-success-line: #b9e2cd;
+  --color-warning: #8a5300;
+  --color-warning-soft: #fdf3e0;
+  --color-warning-line: #efd29a;
+  --color-danger: #b42318;
+  --color-danger-soft: #fdeceb;
+  --color-danger-line: #f3c1bc;
+  --color-info: #1e4fd8;
+  --color-info-soft: #eaf0fd;
+  --color-info-line: #c3d3f8;
+  --color-demo: #6b3fd4;
+  --color-demo-soft: #f3eefe;
+  --color-demo-line: #cdbcf5;
+
+  --color-focus: #2f6fed;
+
+  --radius-card: 0.875rem;
+  --radius-control: 0.625rem;
+
+  --shadow-card: 0 1px 2px rgb(23 25 28 / 0.04), 0 1px 1px rgb(23 25 28 / 0.03);
+  --shadow-raised: 0 8px 24px -8px rgb(23 25 28 / 0.12), 0 2px 6px -2px rgb(23 25 28 / 0.06);
+}
+
+/* A cor da marca no checkout é definida em tempo de execução pela aparência configurada. */
+:root {
+  --brand: #1f4d3a;
+  --brand-fg: #ffffff;
+}
+
+@theme inline {
+  --color-brand: var(--brand);
+  --color-brand-fg: var(--brand-fg);
+  --color-brand-soft: color-mix(in oklab, var(--brand) 9%, white);
+  --color-brand-line: color-mix(in oklab, var(--brand) 32%, white);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+}
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-focus) 22%, white);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
