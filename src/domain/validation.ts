@@ -89,3 +89,32 @@ export function isValidMyshopifyDomain(value: string): boolean {
 export function hasErrors(errors: object): boolean {
   return Object.values(errors).some(Boolean);
 }
+
+/** Fusos aceitos para a operação (Brasil). Compartilhado entre o painel e a validação do servidor. */
+export const SUPPORTED_TIMEZONES = [
+  { value: "America/Sao_Paulo", label: "Brasília (America/Sao_Paulo)" },
+  { value: "America/Manaus", label: "Amazonas (America/Manaus)" },
+  { value: "America/Recife", label: "Pernambuco (America/Recife)" },
+  { value: "America/Noronha", label: "Fernando de Noronha (America/Noronha)" },
+] as const;
+
+export type SupportedTimezone = (typeof SUPPORTED_TIMEZONES)[number]["value"];
+
+/** Logotipo enviado pelo painel: data URL de imagem com até 300 KB. */
+export const LOGO_MAX_BYTES = 300 * 1024;
+export const LOGO_DATA_URL_PATTERN = /^data:image\/(png|jpeg|webp|svg\+xml);base64,[A-Za-z0-9+/]+={0,2}$/;
+
+export function dataUrlByteLength(dataUrl: string): number {
+  const base64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
+  const padding = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
+  return Math.floor((base64.length * 3) / 4) - padding;
+}
+
+export function isHttpsUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && Boolean(url.hostname) && url.hostname.includes(".") && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+}

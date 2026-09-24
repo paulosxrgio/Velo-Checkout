@@ -13,15 +13,10 @@ import { SegmentedControl } from "@/components/ui/segmented-control";
 import { getAdminGateway, toGatewayError } from "@/data";
 import { buildActivationChecklist, canActivate } from "@/domain/operation";
 import type { OperationSettings, OperationSnapshot } from "@/domain/types";
-import { isValidEmail } from "@/domain/validation";
+import { SUPPORTED_TIMEZONES, isHttpsUrl, isValidEmail } from "@/domain/validation";
 import { useResource } from "@/lib/use-resource";
 
-const TIMEZONES = [
-  { value: "America/Sao_Paulo", label: "Brasília (America/Sao_Paulo)" },
-  { value: "America/Manaus", label: "Amazonas (America/Manaus)" },
-  { value: "America/Recife", label: "Pernambuco (America/Recife)" },
-  { value: "America/Noronha", label: "Fernando de Noronha (America/Noronha)" },
-];
+
 
 function SettingsForm({ snapshot, onSaved }: { snapshot: OperationSnapshot; onSaved: (settings: OperationSettings) => void }) {
   const gateway = getAdminGateway();
@@ -29,11 +24,12 @@ function SettingsForm({ snapshot, onSaved }: { snapshot: OperationSnapshot; onSa
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [showErrors, setShowErrors] = useState(false);
+  const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
 
   const errors = {
-    operationName: draft.operationName.trim() ? undefined : "Informe um nome para a operação.",
-    alertEmail: isValidEmail(draft.alertEmail) ? undefined : "Informe um e-mail válido para alertas.",
-    storeUrl: /^https:\/\/[^\s/]+\.[^\s/]+/.test(draft.storeUrl.trim()) ? undefined : "Use o endereço completo com https://.",
+    operationName: draft.operationName.trim() ? serverErrors.operationName : "Informe um nome para a operação.",
+    alertEmail: isValidEmail(draft.alertEmail) ? serverErrors.alertEmail : "Informe um e-mail válido para alertas.",
+    storeUrl: isHttpsUrl(draft.storeUrl.trim()) ? serverErrors.storeUrl : "Use o endereço completo com https://.",
   };
   const invalid = Object.values(errors).some(Boolean);
   const dirty = JSON.stringify(draft) !== JSON.stringify(snapshot.settings);
@@ -42,6 +38,7 @@ function SettingsForm({ snapshot, onSaved }: { snapshot: OperationSnapshot; onSa
   function update<K extends keyof OperationSettings>(field: K, value: OperationSettings[K]) {
     setDraft((current) => ({ ...current, [field]: value }));
     setStatus(null);
+    setServerErrors({});
   }
 
   async function submit(event: FormEvent) {
@@ -53,9 +50,11 @@ function SettingsForm({ snapshot, onSaved }: { snapshot: OperationSnapshot; onSa
       const next = await gateway.saveSettings({ ...draft, operationName: draft.operationName.trim(), storeUrl: draft.storeUrl.trim().replace(/\/$/, "") });
       onSaved(next);
       setDraft(next);
-      setStatus("Configurações salvas neste navegador (demonstração).");
+      setStatus("Configurações salvas no servidor.");
     } catch (error) {
-      setStatus(toGatewayError(error).message);
+      const failure = toGatewayError(error);
+      setServerErrors(failure.fieldErrors ?? {});
+      setStatus(failure.fieldErrors?.environment ?? failure.message);
     } finally {
       setSaving(false);
     }
@@ -110,7 +109,7 @@ function SettingsForm({ snapshot, onSaved }: { snapshot: OperationSnapshot; onSa
             hint="Usado nos links de retorno ao carrinho e às políticas."
           />
           <SelectField label="Fuso horário" value={draft.timezone} onChange={(e) => update("timezone", e.target.value)}>
-            {TIMEZONES.map((tz) => (
+            {SUPPORTED_TIMEZONES.map((tz) => (
               <option key={tz.value} value={tz.value}>
                 {tz.label}
               </option>

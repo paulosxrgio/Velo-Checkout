@@ -35,9 +35,10 @@ function HostnameForm({ domain, onSaved }: { domain: DomainSettings; onSaved: (n
     setSaving(true);
     try {
       onSaved(await gateway.saveCheckoutHostname(value));
-      setMessage("Subdomínio salvo neste navegador (demonstração). A verificação começará quando o backend existir.");
+      setMessage("Subdomínio salvo. A verificação de DNS e HTTPS fica pendente até a hospedagem do checkout ser definida.");
     } catch (e) {
-      setError(toGatewayError(e).message);
+      const failure = toGatewayError(e);
+      setError(failure.fieldErrors?.hostname ?? failure.message);
     } finally {
       setSaving(false);
     }

@@ -22,9 +22,10 @@ export type ShippingRequestState = { status: "idle" | "loading" | "selecting" | 
  * ordem nunca sobrescrevam um estado mais recente. Totais sempre vêm do
  * servidor (via gateway); o cliente não recalcula preços.
  */
-export function useCheckout(cartToken: string) {
-  const gateway = getCheckoutGateway();
-  const resource = useResource<CheckoutState>(`checkout:${cartToken}`, () => gateway.getCheckout(cartToken));
+export function useCheckout(cartToken: string | null) {
+  // Resolvido a cada uso: configuração inválida vira erro tratado, nunca uma queda da tela.
+  const gateway = () => getCheckoutGateway({ cartToken });
+  const resource = useResource<CheckoutState>(`checkout:${cartToken ?? ""}`, async () => gateway().getCheckout(cartToken ?? ""));
   const { setData } = resource;
   const cartId = resource.data?.cart.id ?? null;
 
@@ -75,7 +76,7 @@ export function useCheckout(cartToken: string) {
     setLinePending(lineId, true);
     setLineError(lineId, null);
     try {
-      await mutate((id) => gateway.updateLineQuantity({ cartId: id, lineId, quantity }));
+      await mutate((id) => gateway().updateLineQuantity({ cartId: id, lineId, quantity }));
     } catch (error) {
       setLineError(lineId, toGatewayError(error).message);
     } finally {
@@ -87,7 +88,7 @@ export function useCheckout(cartToken: string) {
     setLinePending(lineId, true);
     setLineError(lineId, null);
     try {
-      await mutate((id) => gateway.removeLine({ cartId: id, lineId }));
+      await mutate((id) => gateway().removeLine({ cartId: id, lineId }));
     } catch (error) {
       setLineError(lineId, toGatewayError(error).message);
     } finally {
@@ -98,7 +99,7 @@ export function useCheckout(cartToken: string) {
   async function acknowledgePriceChanges() {
     setAcknowledging(true);
     try {
-      await mutate((id) => gateway.acknowledgePriceChanges(id));
+      await mutate((id) => gateway().acknowledgePriceChanges(id));
     } finally {
       setAcknowledging(false);
     }
@@ -111,7 +112,7 @@ export function useCheckout(cartToken: string) {
     }
     setCoupon({ status: "applying", error: null });
     try {
-      await mutate((id) => gateway.applyCoupon({ cartId: id, code }));
+      await mutate((id) => gateway().applyCoupon({ cartId: id, code }));
       setCoupon({ status: "idle", error: null });
       return true;
     } catch (error) {
@@ -123,7 +124,7 @@ export function useCheckout(cartToken: string) {
   async function removeCoupon() {
     setCoupon({ status: "removing", error: null });
     try {
-      await mutate((id) => gateway.removeCoupon(id));
+      await mutate((id) => gateway().removeCoupon(id));
       setCoupon({ status: "idle", error: null });
     } catch (error) {
       setCoupon({ status: "idle", error: toGatewayError(error).message });
@@ -135,7 +136,7 @@ export function useCheckout(cartToken: string) {
   async function lookupPostalCode(postalCode: string): Promise<PostalCodeLookup | null | "error"> {
     latestPostalCode.current = postalCode;
     try {
-      const result = await gateway.lookupPostalCode(postalCode);
+      const result = await gateway().lookupPostalCode(postalCode);
       return latestPostalCode.current === postalCode ? result : null;
     } catch {
       return "error";
@@ -145,7 +146,7 @@ export function useCheckout(cartToken: string) {
   async function estimateShipping(address: Pick<ShippingAddress, "postalCode" | "state" | "city">) {
     setShippingRequest({ status: "loading", error: null });
     try {
-      await mutate((id) => gateway.estimateShipping({ cartId: id, address }));
+      await mutate((id) => gateway().estimateShipping({ cartId: id, address }));
       setShippingRequest({ status: "idle", error: null });
     } catch (error) {
       setShippingRequest({ status: "error", error: toGatewayError(error).message });
@@ -155,7 +156,7 @@ export function useCheckout(cartToken: string) {
   async function selectShippingRate(rateId: string) {
     setShippingRequest({ status: "selecting", error: null });
     try {
-      await mutate((id) => gateway.selectShippingRate({ cartId: id, rateId }));
+      await mutate((id) => gateway().selectShippingRate({ cartId: id, rateId }));
       setShippingRequest({ status: "idle", error: null });
     } catch (error) {
       setShippingRequest({ status: "error", error: toGatewayError(error).message });
@@ -168,7 +169,7 @@ export function useCheckout(cartToken: string) {
     setPayment({ status: "preparing" });
     try {
       const attempt = await enqueue(
-        () => gateway.createPaymentAttempt({ cartId: state.cart.id, quoteId: state.quote.id, ...input }),
+        () => gateway().createPaymentAttempt({ cartId: state.cart.id, quoteId: state.quote.id, ...input }),
         false,
       );
       setPayment({ status: "ready", attempt, declineMessage: null });

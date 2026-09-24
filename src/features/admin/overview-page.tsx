@@ -61,6 +61,7 @@ export function OverviewPage() {
   const checklist = buildActivationChecklist(data);
   const pendingChecks = checklist.filter((c) => c.required && c.status !== "ok");
   const attention = orders.data?.filter(requiresAttention) ?? [];
+  const hasDemoOrders = orders.data?.some((order) => order.isDemo) ?? false;
 
   return (
     <>
@@ -134,7 +135,8 @@ export function OverviewPage() {
               </Link>
             }
           >
-            O comprador já pagou. Verifique o motivo para não atrasar o envio. <DemoBadge className="ml-1 align-middle">Dados de demonstração</DemoBadge>
+            O comprador já pagou. Verifique o motivo para não atrasar o envio.
+            {hasDemoOrders ? <DemoBadge className="ml-1 align-middle">Dados de demonstração</DemoBadge> : null}
           </Callout>
         ) : null}
 
@@ -143,7 +145,7 @@ export function OverviewPage() {
             <CardHeader
               title="Pedidos recentes"
               description="Últimas tentativas de compra no checkout."
-              action={<DemoBadge>Dados de demonstração</DemoBadge>}
+              action={hasDemoOrders ? <DemoBadge>Dados de demonstração</DemoBadge> : undefined}
             />
             <div className="mt-4 border-t border-line">
               {orders.status === "loading" ? (
@@ -152,6 +154,10 @@ export function OverviewPage() {
                 <div className="p-5">
                   <AdminLoadError message={orders.error.message} onRetry={orders.reload} />
                 </div>
+              ) : orders.data.length === 0 ? (
+                <p className="px-5 py-8 text-sm text-ink-muted sm:px-6">
+                  Nenhum pedido ainda. As tentativas de compra aparecem aqui quando o checkout real estiver ativo.
+                </p>
               ) : (
                 <OrdersList orders={orders.data.slice(0, 5)} compact />
               )}

@@ -13,7 +13,6 @@ import type {
   ShopifySyncStatus,
 } from "@/domain/types";
 import { GatewayError, type CheckoutGateway, type CheckoutState } from "../contracts";
-import { getDemoStorefront } from "./admin-gateway";
 import {
   DEMO_CATALOG,
   DEMO_COUPONS,
@@ -21,6 +20,7 @@ import {
   DEMO_SCENARIOS,
   DEMO_SHIPPING_RATES,
   DEMO_STORE_URL,
+  DEMO_STOREFRONT,
   DEMO_UNSERVED_POSTAL_CODE,
 } from "./fixtures";
 import { demoId, readDemo, simulateLatency, writeDemo } from "./storage";
@@ -130,7 +130,7 @@ function snapshot(state: DemoCartState): CheckoutState {
     cart: state.cart,
     quote: computeQuote(state),
     shipping: state.shipping,
-    storefront: getDemoStorefront(),
+    storefront: DEMO_STOREFRONT,
     appliedCouponCode: state.couponCode,
   });
 }
@@ -200,7 +200,7 @@ export async function simulateDemoPaymentOutcome(attemptId: string, outcome: Dem
 export const demoCheckoutGateway: CheckoutGateway = {
   async getStorefront() {
     await simulateLatency(150, 300);
-    return getDemoStorefront();
+    return structuredClone(DEMO_STOREFRONT);
   },
 
   async getCheckout(cartToken) {

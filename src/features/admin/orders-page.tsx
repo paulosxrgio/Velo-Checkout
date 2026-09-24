@@ -58,7 +58,7 @@ export function OrdersPage() {
       <PageHeader
         title="Pedidos"
         description="Tentativas de compra com o status do pagamento na Whop e da criação do pedido na Shopify."
-        badges={<DemoBadge>Dados de demonstração</DemoBadge>}
+        badges={orders.some((order) => order.isDemo) ? <DemoBadge>Dados de demonstração</DemoBadge> : undefined}
       />
 
       {resource.status === "loading" ? (
@@ -120,8 +120,12 @@ export function OrdersPage() {
               <OrdersList orders={filtered} />
             ) : (
               <div className="px-6 py-14 text-center">
-                <p className="text-sm font-medium text-ink">Nenhum pedido encontrado</p>
-                <p className="mt-1 text-sm text-ink-muted">Ajuste o filtro ou a busca.</p>
+                <p className="text-sm font-medium text-ink">{orders.length ? "Nenhum pedido encontrado" : "Nenhum pedido ainda"}</p>
+                <p className="mt-1 text-sm text-ink-muted">
+                  {orders.length
+                    ? "Ajuste o filtro ou a busca."
+                    : "As tentativas de compra aparecem aqui quando o checkout real estiver ativo."}
+                </p>
               </div>
             )}
           </Card>

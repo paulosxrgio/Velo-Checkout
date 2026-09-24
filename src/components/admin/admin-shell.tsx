@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   CreditCard,
   ExternalLink,
   Globe,
   LayoutDashboard,
   ListChecks,
+  LogOut,
   Menu,
   Palette,
   Receipt,
@@ -16,7 +17,6 @@ import {
   Store,
   X,
 } from "lucide-react";
-import { DemoBadge } from "@/components/ui/demo";
 import { cn } from "@/lib/cn";
 import { VeloMark } from "./velo-mark";
 
@@ -95,7 +95,47 @@ function NavList({ pathname, attentionCount }: { pathname: string; attentionCoun
   );
 }
 
-function SidebarFooter({ storeName, environment }: { storeName: string; environment: string }) {
+function SignOutButton() {
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function signOut() {
+    setPending(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
+      if (!response.ok) throw new Error();
+      router.replace("/entrar");
+      router.refresh();
+    } catch {
+      setError("Não foi possível sair. Tente novamente.");
+      setPending(false);
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => void signOut()}
+        disabled={pending}
+        className="flex size-8 shrink-0 items-center justify-center rounded-md text-ink-muted hover:bg-muted hover:text-ink disabled:opacity-50"
+        aria-label="Sair do painel"
+        title="Sair"
+      >
+        <LogOut className="size-4" aria-hidden="true" />
+      </button>
+      {error ? (
+        <p role="alert" className="absolute right-3 bottom-full mb-1 rounded-md bg-danger-soft px-2 py-1 text-xs text-danger">
+          {error}
+        </p>
+      ) : null}
+    </>
+  );
+}
+
+function SidebarFooter({ storeName, environment, userEmail }: { storeName: string; environment: string; userEmail: string }) {
   return (
     <div className="space-y-3 border-t border-line pt-4">
       <Link
@@ -109,6 +149,12 @@ function SidebarFooter({ storeName, environment }: { storeName: string; environm
         <p className="truncate text-sm font-medium text-ink">{storeName}</p>
         <p className="text-xs text-ink-muted">Loja única · {environment}</p>
       </div>
+      <div className="relative flex items-center justify-between gap-2 border-t border-line px-3 pt-3">
+        <p className="min-w-0 truncate text-xs text-ink-muted" title={userEmail}>
+          {userEmail}
+        </p>
+        <SignOutButton />
+      </div>
     </div>
   );
 }
@@ -118,13 +164,13 @@ export function AdminShell({
   storeName,
   environment,
   attentionCount,
-  isDemo,
+  userEmail,
 }: {
   children: ReactNode;
   storeName: string;
   environment: string;
   attentionCount: number;
-  isDemo: boolean;
+  userEmail: string;
 }) {
   const pathname = usePathname();
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -146,12 +192,11 @@ export function AdminShell({
       <aside className="sticky top-0 hidden h-screen flex-col gap-6 border-r border-line bg-surface px-3 py-5 lg:flex">
         <div className="flex items-center justify-between px-3">
           <VeloMark />
-          {isDemo ? <DemoBadge>Demo</DemoBadge> : null}
         </div>
         <div className="flex-1 overflow-y-auto">
           <NavList pathname={pathname} attentionCount={attentionCount} />
         </div>
-        <SidebarFooter storeName={storeName} environment={environment} />
+        <SidebarFooter storeName={storeName} environment={environment} userEmail={userEmail} />
       </aside>
 
       {/* Barra superior (celular) */}
@@ -165,7 +210,7 @@ export function AdminShell({
           <Menu className="size-5" aria-hidden="true" />
         </button>
         <VeloMark />
-        {isDemo ? <DemoBadge>Demo</DemoBadge> : <span className="w-10" />}
+        <span className="w-10" />
       </header>
 
       <dialog
@@ -191,7 +236,7 @@ export function AdminShell({
           <div className="flex-1 overflow-y-auto">
             <NavList pathname={pathname} attentionCount={attentionCount} />
           </div>
-          <SidebarFooter storeName={storeName} environment={environment} />
+          <SidebarFooter storeName={storeName} environment={environment} userEmail={userEmail} />
         </div>
       </dialog>
 

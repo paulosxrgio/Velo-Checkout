@@ -15,14 +15,16 @@ import type {
   StorefrontInfo,
   WhopConnection,
 } from "@/domain/types";
+import { DataSourceConfigError } from "./source";
 
 /**
  * Contratos da camada de dados.
  *
- * As telas só conhecem estas interfaces. Hoje elas são implementadas pelo
- * adaptador demonstrativo (`src/data/demo`). Nas próximas etapas, um adaptador
- * HTTP chamará as rotas do servidor, que por sua vez falarão com a Shopify e a
- * Whop usando credenciais que nunca chegam ao navegador.
+ * As telas só conhecem estas interfaces. Implementações:
+ * - `src/data/http`: painel, via rotas autenticadas do servidor (`/api/admin`);
+ * - `src/data/demo`: cenários de demonstração do checkout;
+ * - `src/data/live`: checkout real (ainda não implementado — falha explicitamente).
+ * A escolha acontece somente em `src/data/index.ts`.
  */
 
 export type GatewayErrorCode =
@@ -38,12 +40,19 @@ export type GatewayErrorCode =
   | "price_changes_pending"
   | "attempt_not_found"
   | "not_implemented"
+  | "unauthorized"
+  | "validation"
+  | "not_found"
+  | "misconfigured"
+  | "server"
   | "network";
 
 export class GatewayError extends Error {
   constructor(
     public readonly code: GatewayErrorCode,
     message: string,
+    /** Mensagens por campo, quando o servidor recusa dados inválidos. */
+    public readonly fieldErrors?: Record<string, string>,
   ) {
     super(message);
     this.name = "GatewayError";
@@ -52,6 +61,7 @@ export class GatewayError extends Error {
 
 export function toGatewayError(error: unknown): GatewayError {
   if (error instanceof GatewayError) return error;
+  if (error instanceof DataSourceConfigError) return new GatewayError("misconfigured", error.message);
   return new GatewayError("network", "Não foi possível se comunicar com o servidor. Tente novamente.");
 }
 

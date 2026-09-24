@@ -26,17 +26,24 @@ function AppearanceForm({ initial, onSaved }: { initial: AppearanceSettings; onS
   const [logoError, setLogoError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
   const fileRef = useRef<HTMLInputElement>(null);
 
   const dirty = JSON.stringify(draft) !== JSON.stringify(initial);
-  const nameError = draft.storeName.trim() ? undefined : "Informe o nome da loja.";
-  const colorError = isHexColor(hexInput) ? undefined : "Use o formato hexadecimal, como #1f4d3a.";
+  const nameError = draft.storeName.trim() ? serverErrors.storeName : "Informe o nome da loja.";
+  const colorError = isHexColor(hexInput) ? serverErrors.primaryColor : "Use o formato hexadecimal, como #1f4d3a.";
   const contrast = contrastRatio(draft.primaryColor, readableForeground(draft.primaryColor));
   const contrastOk = contrast >= 4.5;
 
   function update<K extends keyof AppearanceSettings>(field: K, value: AppearanceSettings[K]) {
     setDraft((current) => ({ ...current, [field]: value }));
     setStatus(null);
+    setServerErrors((current) => {
+      if (!current[field as string]) return current;
+      const next = { ...current };
+      delete next[field as string];
+      return next;
+    });
   }
 
   function handleHex(value: string) {
@@ -72,9 +79,11 @@ function AppearanceForm({ initial, onSaved }: { initial: AppearanceSettings; onS
     try {
       const next = await gateway.saveAppearance({ ...draft, storeName: draft.storeName.trim(), supportText: draft.supportText.trim() });
       onSaved(next);
-      setStatus("Aparência salva neste navegador (demonstração). Abra o checkout de demonstração para conferir.");
+      setStatus("Aparência salva no servidor. Ela vale para qualquer navegador em que você entrar.");
     } catch (error) {
-      setStatus(toGatewayError(error).message);
+      const failure = toGatewayError(error);
+      setServerErrors(failure.fieldErrors ?? {});
+      setStatus(failure.message);
     } finally {
       setSaving(false);
     }
@@ -102,7 +111,7 @@ function AppearanceForm({ initial, onSaved }: { initial: AppearanceSettings; onS
               required
             />
 
-            <FieldShell id="logo-upload" label="Logotipo" optional error={logoError ?? undefined} hint="PNG, SVG, JPG ou WebP com até 300 KB. Fundo transparente funciona melhor.">
+            <FieldShell id="logo-upload" label="Logotipo" optional error={logoError ?? serverErrors.logoUrl} hint="PNG, SVG, JPG ou WebP com até 300 KB. Fundo transparente funciona melhor.">
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex h-14 w-36 items-center justify-center overflow-hidden rounded-[var(--radius-control)] border border-dashed border-line-strong bg-muted/50 px-2">
                   {draft.logoUrl ? (

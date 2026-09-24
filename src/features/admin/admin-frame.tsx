@@ -2,22 +2,24 @@
 
 import type { ReactNode } from "react";
 import { AdminShell } from "@/components/admin/admin-shell";
-import { getAdminGateway, isDemoData } from "@/data";
+import { getAdminGateway } from "@/data";
 import { requiresAttention } from "@/domain/operation";
 import { useResource } from "@/lib/use-resource";
 
-/** Carrega os dados globais do painel (nome da loja, ambiente e alertas) para a navegação. */
-export function AdminFrame({ children }: { children: ReactNode }) {
-  const gateway = getAdminGateway();
-  const settings = useResource("admin:settings", () => gateway.getSettings());
-  const orders = useResource("admin:orders", () => gateway.listOrders());
+/**
+ * Moldura do painel já autenticado (a sessão foi verificada no servidor pelo
+ * layout). Carrega nome da loja, ambiente e alertas para a navegação.
+ */
+export function AdminFrame({ children, userEmail }: { children: ReactNode; userEmail: string }) {
+  const settings = useResource("admin:settings", async () => getAdminGateway().getSettings());
+  const orders = useResource("admin:orders", async () => getAdminGateway().listOrders());
 
   return (
     <AdminShell
-      storeName={settings.data?.operationName ?? "Carregando…"}
+      storeName={settings.data ? settings.data.operationName || "Operação sem nome" : "Carregando…"}
       environment={settings.data ? (settings.data.environment === "production" ? "Produção" : "Sandbox") : "—"}
       attentionCount={orders.data?.filter(requiresAttention).length ?? 0}
-      isDemo={isDemoData}
+      userEmail={userEmail}
     >
       {children}
     </AdminShell>

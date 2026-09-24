@@ -14,7 +14,7 @@ import {
 import { CheckoutFooter, CheckoutHeader } from "@/components/checkout/store-chrome";
 import { buttonStyles } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
-import { getCheckoutGateway, isDemoData } from "@/data";
+import { checkoutMode, getCheckoutGateway } from "@/data";
 import type { PaymentAttempt } from "@/domain/types";
 import { useResource } from "@/lib/use-resource";
 import { usePaymentAttempt } from "./use-payment-attempt";
@@ -66,8 +66,8 @@ function StatusDescription({ attempt }: { attempt: PaymentAttempt }) {
 }
 
 export function PaymentStatusExperience({ attemptId }: { attemptId: string | null }) {
-  const gateway = getCheckoutGateway();
-  const storefront = useResource("storefront", () => gateway.getStorefront());
+  const mode = checkoutMode({ attemptId });
+  const storefront = useResource(`storefront:${attemptId ?? ""}`, async () => getCheckoutGateway({ attemptId }).getStorefront());
   const view = usePaymentAttempt(attemptId);
   const storeUrl = storefront.data?.storeUrl;
 
@@ -137,7 +137,7 @@ export function PaymentStatusExperience({ attemptId }: { attemptId: string | nul
 
   return (
     <BrandTheme color={storefront.data?.appearance.primaryColor ?? "#1f4d3a"} className="flex min-h-screen flex-col">
-      {isDemoData ? <DemoBar /> : null}
+      {mode.ok && mode.demo ? <DemoBar /> : null}
       {storefront.data ? <CheckoutHeader storefront={storefront.data} /> : <div className="h-16 border-b border-line bg-surface" />}
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8 sm:px-6 sm:py-12">{content}</main>
       {storefront.data ? <CheckoutFooter storefront={storefront.data} /> : null}

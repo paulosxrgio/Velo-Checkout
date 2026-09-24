@@ -39,7 +39,6 @@ export function usePaymentAttempt(attemptId: string | null) {
 
   useEffect(() => {
     if (!attemptId) return;
-    const gateway = getCheckoutGateway();
     const startedAt = Date.now();
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -49,30 +48,33 @@ export function usePaymentAttempt(attemptId: string | null) {
     }
 
     function check() {
-      gateway.getPaymentAttempt(attemptId as string).then(
-        (attempt) => {
-          if (cancelled) return;
-          const settling = isSettling(attempt);
-          const withinWindow = Date.now() - startedAt < MAX_POLLING_MS;
-          setView({
-            phase: "ready",
-            attempt,
-            checkedAt: new Date().toISOString(),
-            polling: settling && withinWindow,
-            timedOut: settling && !withinWindow,
-          });
-          if (settling && withinWindow) schedule();
-        },
-        (error: unknown) => {
-          if (cancelled) return;
-          setView((previous) => ({
-            ...previous,
-            phase: previous.attempt ? "ready" : "error",
-            error: toGatewayError(error),
-            polling: false,
-          }));
-        },
-      );
+      // Promise.resolve().then: configuração inválida vira erro tratado, não uma exceção no efeito.
+      Promise.resolve()
+        .then(() => getCheckoutGateway({ attemptId }).getPaymentAttempt(attemptId as string))
+        .then(
+          (attempt) => {
+            if (cancelled) return;
+            const settling = isSettling(attempt);
+            const withinWindow = Date.now() - startedAt < MAX_POLLING_MS;
+            setView({
+              phase: "ready",
+              attempt,
+              checkedAt: new Date().toISOString(),
+              polling: settling && withinWindow,
+              timedOut: settling && !withinWindow,
+            });
+            if (settling && withinWindow) schedule();
+          },
+          (error: unknown) => {
+            if (cancelled) return;
+            setView((previous) => ({
+              ...previous,
+              phase: previous.attempt ? "ready" : "error",
+              error: toGatewayError(error),
+              polling: false,
+            }));
+          },
+        );
     }
 
     check();

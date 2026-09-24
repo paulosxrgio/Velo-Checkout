@@ -1,0 +1,1637 @@
+{
+  "id": "220bd694-0022-4e01-aef6-7415d916286a",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "velo.admin_login_attempts": {
+      "name": "admin_login_attempts",
+      "schema": "velo",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "admin_login_attempts_id_seq",
+            "schema": "velo",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ip_address": {
+          "name": "ip_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "succeeded": {
+          "name": "succeeded",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attempted_at": {
+          "name": "attempted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "admin_login_attempts_email_idx": {
+          "name": "admin_login_attempts_email_idx",
+          "columns": [
+            {
+              "expression": "email",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "attempted_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "admin_login_attempts_ip_idx": {
+          "name": "admin_login_attempts_ip_idx",
+          "columns": [
+            {
+              "expression": "ip_address",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "attempted_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "velo.admin_sessions": {
+      "name": "admin_sessions",
+      "schema": "velo",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "last_seen_at": {
+          "name": "last_seen_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_agent": {
+          "name": "user_agent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ip_address": {
+          "name": "ip_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "admin_sessions_user_idx": {
+          "name": "admin_sessions_user_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "admin_sessions_expires_idx": {
+          "name": "admin_sessions_expires_idx",
+          "columns": [
+            {
+              "expression": "expires_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "admin_sessions_user_id_admin_users_id_fk": {
+          "name": "admin_sessions_user_id_admin_users_id_fk",
+          "tableFrom": "admin_sessions",
+          "tableTo": "admin_users",
+          "schemaTo": "velo",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "velo.admin_users": {
+      "name": "admin_users",
+      "schema": "velo",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "password_hash": {
+          "name": "password_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "last_login_at": {
+          "name": "last_login_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "admin_users_email_key": {
+          "name": "admin_users_email_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "admin_users_email_lowercase": {
+          "name": "admin_users_email_lowercase",
+          "value": "\"velo\".\"admin_users\".\"email\" = lower(\"velo\".\"admin_users\".\"email\")"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "velo.carts": {
+      "name": "carts",
+      "schema": "velo",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "handoff_token_hash": {
+          "name": "handoff_token_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "shop_domain": {
+          "name": "shop_domain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "shopify_cart_token": {
+          "name": "shopify_cart_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "currency_code": {
+          "name": "currency_code",
+          "type": "char(3)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "line_items": {
+          "name": "line_items",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'received'"
+        },
+        "rejection_reason": {
+          "name": "rejection_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "received_at": {
+          "name": "received_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "validated_at": {
+          "name": "validated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "carts_status_expires_idx": {
+          "name": "carts_status_expires_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "expires_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "carts_handoff_token_hash_key": {
+          "name": "carts_handoff_token_hash_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "handoff_token_hash"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "carts_status": {
+          "name": "carts_status",
+          "value": "\"velo\".\"carts\".\"status\" in ('received', 'validated', 'rejected', 'expired', 'converted')"
+        },
+        "carts_currency": {
+          "name": "carts_currency",
+          "value": "\"velo\".\"carts\".\"currency_code\" ~ '^[A-Z]{3}$'"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "velo.checkout_domain": {
+      "name": "checkout_domain",
+      "schema": "velo",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "smallint",
+          "primaryKey": true,
+          "notNull": true,
+          "default": 1
+        },
+        "hostname": {
+          "name": "hostname",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dns_status": {
+          "name": "dns_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'not_started'"
+        },
+        "https_status": {
+          "name": "https_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'not_started'"
+        },
+        "apple_pay_status": {
+          "name": "apple_pay_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'not_started'"
+        },
+        "last_checked_at": {
+          "name": "last_checked_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "checkout_domain_updated_by_admin_users_id_fk": {
+          "name": "checkout_domain_updated_by_admin_users_id_fk",
+          "tableFrom": "checkout_domain",
+          "tableTo": "admin_users",
+          "schemaTo": "velo",
+          "columnsFrom": [
+            "updated_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "checkout_domain_hostname_key": {
+          "name": "checkout_domain_hostname_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "hostname"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "checkout_domain_singleton": {
+          "name": "checkout_domain_singleton",
+          "value": "\"velo\".\"checkout_domain\".\"id\" = 1"
+        },
+        "checkout_domain_hostname_lowercase": {
+          "name": "checkout_domain_hostname_lowercase",
+          "value": "\"velo\".\"checkout_domain\".\"hostname\" = lower(\"velo\".\"checkout_domain\".\"hostname\")"
+        },
+        "checkout_domain_dns_status": {
+          "name": "checkout_domain_dns_status",
+          "value": "\"velo\".\"checkout_domain\".\"dns_status\" in ('not_started', 'pending', 'verified', 'failed')"
+        },
+        "checkout_domain_https_status": {
+          "name": "checkout_domain_https_status",
+          "value": "\"velo\".\"checkout_domain\".\"https_status\" in ('not_started', 'pending', 'verified', 'failed')"
+        },
+        "checkout_domain_apple_pay_status": {
+          "name": "checkout_domain_apple_pay_status",
+          "value": "\"velo\".\"checkout_domain\".\"apple_pay_status\" in ('not_started', 'pending', 'verified', 'failed')"
+        },
+        "checkout_domain_verified_requires_check": {
+          "name": "checkout_domain_verified_requires_check",
+          "value": "(\"velo\".\"checkout_domain\".\"dns_status\" <> 'verified' and \"velo\".\"checkout_domain\".\"https_status\" <> 'verified' and \"velo\".\"checkout_domain\".\"apple_pay_status\" <> 'verified')\n          or (\"velo\".\"checkout_domain\".\"hostname\" is not null and \"velo\".\"checkout_domain\".\"last_checked_at\" is not null)"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "velo.operation_settings": {
+      "name": "operation_settings",
+      "schema": "velo",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "smallint",
+          "primaryKey": true,
+          "notNull": true,
+          "default": 1
+        },
+        "operation_name": {
+          "name": "operation_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "alert_email": {
+          "name": "alert_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "store_url": {
+          "name": "store_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "currency_code": {
+          "name": "currency_code",
+          "type": "char(3)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'BRL'"
+        },
+        "timezone": {
+          "name": "timezone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'America/Sao_Paulo'"
+        },
+        "payment_environment": {
+          "name": "payment_environment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'sandbox'"
+        },
+        "store_name": {
+          "name": "store_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "logo_data_url": {
+          "name": "logo_data_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "primary_color": {
+          "name": "primary_color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'#1f4d3a'"
+        },
+        "support_text": {
+          "name": "support_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "checkout_active": {
+          "name": "checkout_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "sandbox_test_passed_at": {
+          "name": "sandbox_test_passed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "operation_settings_updated_by_admin_users_id_fk": {
+          "name": "operation_settings_updated_by_admin_users_id_fk",
+          "tableFrom": "operation_settings",
+          "tableTo": "admin_users",
+          "schemaTo": "velo",
+          "columnsFrom": [
+            "updated_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "operation_settings_singleton": {
+          "name": "operation_settings_singleton",
+          "value": "\"velo\".\"operation_settings\".\"id\" = 1"
+        },
+        "operation_settings_environment": {
+          "name": "operation_settings_environment",
+          "value": "\"velo\".\"operation_settings\".\"payment_environment\" in ('sandbox', 'production')"
+        },
+        "operation_settings_primary_color": {
+          "name": "operation_settings_primary_color",
+          "value": "\"velo\".\"operation_settings\".\"primary_color\" ~ '^#[0-9a-f]{6}$'"
+        },
+        "operation_settings_currency": {
+          "name": "operation_settings_currency",
+          "value": "\"velo\".\"operation_settings\".\"currency_code\" ~ '^[A-Z]{3}$'"
+        },
+        "operation_settings_activation_requires_test": {
+          "name": "operation_settings_activation_requires_test",
+          "value": "not \"velo\".\"operation_settings\".\"checkout_active\" or \"velo\".\"operation_settings\".\"sandbox_test_passed_at\" is not null"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "velo.payment_attempts": {
+      "name": "payment_attempts",
+      "schema": "velo",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "order_number": {
+          "name": "order_number",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "payment_attempts_order_number_seq",
+            "schema": "velo",
+            "increment": "1",
+            "startWith": "1001",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "cart_id": {
+          "name": "cart_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quote_id": {
+          "name": "quote_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "provider": {
+          "name": "provider",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'whop'"
+        },
+        "environment": {
+          "name": "environment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'created'"
+        },
+        "amount": {
+          "name": "amount",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "currency_code": {
+          "name": "currency_code",
+          "type": "char(3)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "whop_checkout_session_id": {
+          "name": "whop_checkout_session_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "whop_payment_id": {
+          "name": "whop_payment_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "customer_email": {
+          "name": "customer_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "customer": {
+          "name": "customer",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "shipping_address": {
+          "name": "shipping_address",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "failure_code": {
+          "name": "failure_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "failure_message": {
+          "name": "failure_message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "paid_at": {
+          "name": "paid_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "shopify_sync_status": {
+          "name": "shopify_sync_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'not_started'"
+        },
+        "shopify_order_id": {
+          "name": "shopify_order_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "shopify_order_name": {
+          "name": "shopify_order_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "shopify_sync_attempts": {
+          "name": "shopify_sync_attempts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "shopify_last_error": {
+          "name": "shopify_last_error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "shopify_synced_at": {
+          "name": "shopify_synced_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "payment_attempts_one_active_per_quote": {
+          "name": "payment_attempts_one_active_per_quote",
+          "columns": [
+            {
+              "expression": "quote_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"velo\".\"payment_attempts\".\"status\" in ('created', 'awaiting_payment', 'processing')",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "payment_attempts_status_idx": {
+          "name": "payment_attempts_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "payment_attempts_sync_idx": {
+          "name": "payment_attempts_sync_idx",
+          "columns": [
+            {
+              "expression": "shopify_sync_status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "payment_attempts_cart_id_carts_id_fk": {
+          "name": "payment_attempts_cart_id_carts_id_fk",
+          "tableFrom": "payment_attempts",
+          "tableTo": "carts",
+          "schemaTo": "velo",
+          "columnsFrom": [
+            "cart_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "payment_attempts_quote_id_quotes_id_fk": {
+          "name": "payment_attempts_quote_id_quotes_id_fk",
+          "tableFrom": "payment_attempts",
+          "tableTo": "quotes",
+          "schemaTo": "velo",
+          "columnsFrom": [
+            "quote_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "payment_attempts_order_number_key": {
+          "name": "payment_attempts_order_number_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "order_number"
+          ]
+        },
+        "payment_attempts_idempotency_key_key": {
+          "name": "payment_attempts_idempotency_key_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "idempotency_key"
+          ]
+        },
+        "payment_attempts_whop_session_key": {
+          "name": "payment_attempts_whop_session_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "whop_checkout_session_id"
+          ]
+        },
+        "payment_attempts_whop_payment_key": {
+          "name": "payment_attempts_whop_payment_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "whop_payment_id"
+          ]
+        },
+        "payment_attempts_shopify_order_key": {
+          "name": "payment_attempts_shopify_order_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "shopify_order_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "payment_attempts_provider": {
+          "name": "payment_attempts_provider",
+          "value": "\"velo\".\"payment_attempts\".\"provider\" = 'whop'"
+        },
+        "payment_attempts_environment": {
+          "name": "payment_attempts_environment",
+          "value": "\"velo\".\"payment_attempts\".\"environment\" in ('sandbox', 'production')"
+        },
+        "payment_attempts_status": {
+          "name": "payment_attempts_status",
+          "value": "\"velo\".\"payment_attempts\".\"status\" in ('created', 'awaiting_payment', 'processing', 'paid', 'failed', 'expired', 'canceled', 'refunded')"
+        },
+        "payment_attempts_sync_status": {
+          "name": "payment_attempts_sync_status",
+          "value": "\"velo\".\"payment_attempts\".\"shopify_sync_status\" in ('not_started', 'pending', 'synced', 'failed')"
+        },
+        "payment_attempts_amount_positive": {
+          "name": "payment_attempts_amount_positive",
+          "value": "\"velo\".\"payment_attempts\".\"amount\" > 0"
+        },
+        "payment_attempts_paid_requires_confirmation": {
+          "name": "payment_attempts_paid_requires_confirmation",
+          "value": "\"velo\".\"payment_attempts\".\"status\" not in ('paid', 'refunded') or (\"velo\".\"payment_attempts\".\"paid_at\" is not null and \"velo\".\"payment_attempts\".\"whop_payment_id\" is not null)"
+        },
+        "payment_attempts_sync_requires_payment": {
+          "name": "payment_attempts_sync_requires_payment",
+          "value": "\"velo\".\"payment_attempts\".\"shopify_sync_status\" = 'not_started' or \"velo\".\"payment_attempts\".\"status\" in ('paid', 'refunded')"
+        },
+        "payment_attempts_synced_requires_order": {
+          "name": "payment_attempts_synced_requires_order",
+          "value": "\"velo\".\"payment_attempts\".\"shopify_sync_status\" <> 'synced' or (\"velo\".\"payment_attempts\".\"shopify_order_id\" is not null and \"velo\".\"payment_attempts\".\"shopify_synced_at\" is not null)"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "velo.quotes": {
+      "name": "quotes",
+      "schema": "velo",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "cart_id": {
+          "name": "cart_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'open'"
+        },
+        "currency_code": {
+          "name": "currency_code",
+          "type": "char(3)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subtotal_amount": {
+          "name": "subtotal_amount",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "discount_amount": {
+          "name": "discount_amount",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "shipping_amount": {
+          "name": "shipping_amount",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "tax_amount": {
+          "name": "tax_amount",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "taxes_included": {
+          "name": "taxes_included",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "total_amount": {
+          "name": "total_amount",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "discount_codes": {
+          "name": "discount_codes",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::text[]"
+        },
+        "shipping_rate": {
+          "name": "shipping_rate",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "line_items": {
+          "name": "line_items",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "locked_at": {
+          "name": "locked_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "quotes_one_open_per_cart": {
+          "name": "quotes_one_open_per_cart",
+          "columns": [
+            {
+              "expression": "cart_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"velo\".\"quotes\".\"status\" = 'open'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "quotes_cart_id_carts_id_fk": {
+          "name": "quotes_cart_id_carts_id_fk",
+          "tableFrom": "quotes",
+          "tableTo": "carts",
+          "schemaTo": "velo",
+          "columnsFrom": [
+            "cart_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "quotes_cart_version_key": {
+          "name": "quotes_cart_version_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "cart_id",
+            "version"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "quotes_status": {
+          "name": "quotes_status",
+          "value": "\"velo\".\"quotes\".\"status\" in ('open', 'locked', 'superseded', 'expired')"
+        },
+        "quotes_amounts_non_negative": {
+          "name": "quotes_amounts_non_negative",
+          "value": "\"velo\".\"quotes\".\"subtotal_amount\" >= 0 and \"velo\".\"quotes\".\"discount_amount\" >= 0 and \"velo\".\"quotes\".\"shipping_amount\" >= 0 and \"velo\".\"quotes\".\"tax_amount\" >= 0 and \"velo\".\"quotes\".\"total_amount\" >= 0"
+        },
+        "quotes_total_matches_parts": {
+          "name": "quotes_total_matches_parts",
+          "value": "\"velo\".\"quotes\".\"total_amount\" = \"velo\".\"quotes\".\"subtotal_amount\" - \"velo\".\"quotes\".\"discount_amount\" + \"velo\".\"quotes\".\"shipping_amount\" + case when \"velo\".\"quotes\".\"taxes_included\" then 0 else \"velo\".\"quotes\".\"tax_amount\" end"
+        },
+        "quotes_locked_requires_timestamp": {
+          "name": "quotes_locked_requires_timestamp",
+          "value": "\"velo\".\"quotes\".\"status\" <> 'locked' or \"velo\".\"quotes\".\"locked_at\" is not null"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "velo.shopify_connection": {
+      "name": "shopify_connection",
+      "schema": "velo",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "smallint",
+          "primaryKey": true,
+          "notNull": true,
+          "default": 1
+        },
+        "shop_domain": {
+          "name": "shop_domain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'disconnected'"
+        },
+        "granted_scopes": {
+          "name": "granted_scopes",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::text[]"
+        },
+        "access_token_ciphertext": {
+          "name": "access_token_ciphertext",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oauth_state_hash": {
+          "name": "oauth_state_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oauth_state_expires_at": {
+          "name": "oauth_state_expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "installed_at": {
+          "name": "installed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uninstalled_at": {
+          "name": "uninstalled_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_verified_at": {
+          "name": "last_verified_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_error": {
+          "name": "last_error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "shopify_connection_singleton": {
+          "name": "shopify_connection_singleton",
+          "value": "\"velo\".\"shopify_connection\".\"id\" = 1"
+        },
+        "shopify_connection_status": {
+          "name": "shopify_connection_status",
+          "value": "\"velo\".\"shopify_connection\".\"status\" in ('disconnected', 'connecting', 'connected', 'error')"
+        },
+        "shopify_connection_shop_domain": {
+          "name": "shopify_connection_shop_domain",
+          "value": "\"velo\".\"shopify_connection\".\"shop_domain\" ~ '^[a-z0-9][a-z0-9-]*\\.myshopify\\.com$'"
+        },
+        "shopify_connection_connected_requires_verification": {
+          "name": "shopify_connection_connected_requires_verification",
+          "value": "\"velo\".\"shopify_connection\".\"status\" <> 'connected' or (\"velo\".\"shopify_connection\".\"shop_domain\" is not null and \"velo\".\"shopify_connection\".\"access_token_ciphertext\" is not null and \"velo\".\"shopify_connection\".\"last_verified_at\" is not null)"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "velo.webhook_events": {
+      "name": "webhook_events",
+      "schema": "velo",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "provider": {
+          "name": "provider",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "provider_event_id": {
+          "name": "provider_event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_type": {
+          "name": "event_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "payload": {
+          "name": "payload",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "payload_sha256": {
+          "name": "payload_sha256",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "signature_verified": {
+          "name": "signature_verified",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'received'"
+        },
+        "attempts": {
+          "name": "attempts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "last_error": {
+          "name": "last_error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payment_attempt_id": {
+          "name": "payment_attempt_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "received_at": {
+          "name": "received_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "processed_at": {
+          "name": "processed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "webhook_events_status_idx": {
+          "name": "webhook_events_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "received_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "webhook_events_payment_attempt_id_payment_attempts_id_fk": {
+          "name": "webhook_events_payment_attempt_id_payment_attempts_id_fk",
+          "tableFrom": "webhook_events",
+          "tableTo": "payment_attempts",
+          "schemaTo": "velo",
+          "columnsFrom": [
+            "payment_attempt_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "webhook_events_provider_event_key": {
+          "name": "webhook_events_provider_event_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "provider",
+            "provider_event_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "webhook_events_provider": {
+          "name": "webhook_events_provider",
+          "value": "\"velo\".\"webhook_events\".\"provider\" in ('whop', 'shopify')"
+        },
+        "webhook_events_status": {
+          "name": "webhook_events_status",
+          "value": "\"velo\".\"webhook_events\".\"status\" in ('received', 'processing', 'processed', 'ignored', 'failed')"
+        },
+        "webhook_events_processed_requires_signature": {
+          "name": "webhook_events_processed_requires_signature",
+          "value": "\"velo\".\"webhook_events\".\"status\" <> 'processed' or \"velo\".\"webhook_events\".\"signature_verified\""
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "velo.whop_connections": {
+      "name": "whop_connections",
+      "schema": "velo",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "environment": {
+          "name": "environment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'disconnected'"
+        },
+        "company_id": {
+          "name": "company_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "account_name": {
+          "name": "account_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "api_key_ciphertext": {
+          "name": "api_key_ciphertext",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "webhook_secret_ciphertext": {
+          "name": "webhook_secret_ciphertext",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "webhook_endpoint_url": {
+          "name": "webhook_endpoint_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "webhook_status": {
+          "name": "webhook_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'not_configured'"
+        },
+        "webhook_last_event_at": {
+          "name": "webhook_last_event_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_verified_at": {
+          "name": "last_verified_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_error": {
+          "name": "last_error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "whop_connections_environment_key": {
+          "name": "whop_connections_environment_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "environment"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "whop_connections_environment": {
+          "name": "whop_connections_environment",
+          "value": "\"velo\".\"whop_connections\".\"environment\" in ('sandbox', 'production')"
+        },
+        "whop_connections_status": {
+          "name": "whop_connections_status",
+          "value": "\"velo\".\"whop_connections\".\"status\" in ('disconnected', 'connected', 'error')"
+        },
+        "whop_connections_webhook_status": {
+          "name": "whop_connections_webhook_status",
+          "value": "\"velo\".\"whop_connections\".\"webhook_status\" in ('not_configured', 'pending', 'active', 'failing')"
+        },
+        "whop_connections_connected_requires_verification": {
+          "name": "whop_connections_connected_requires_verification",
+          "value": "\"velo\".\"whop_connections\".\"status\" <> 'connected' or (\"velo\".\"whop_connections\".\"api_key_ciphertext\" is not null and \"velo\".\"whop_connections\".\"company_id\" is not null and \"velo\".\"whop_connections\".\"last_verified_at\" is not null)"
+        },
+        "whop_connections_webhook_active_requires_event": {
+          "name": "whop_connections_webhook_active_requires_event",
+          "value": "\"velo\".\"whop_connections\".\"webhook_status\" <> 'active' or (\"velo\".\"whop_connections\".\"webhook_secret_ciphertext\" is not null and \"velo\".\"whop_connections\".\"webhook_last_event_at\" is not null)"
+        }
+      },
+      "isRLSEnabled": true
+    }
+  },
+  "enums": {},
+  "schemas": {
+    "velo": "velo"
+  },
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

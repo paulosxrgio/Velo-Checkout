@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
 import { Card, CardBody, CardFooter, CardHeader } from "@/components/ui/card";
 import { SegmentedControl } from "@/components/ui/segmented-control";
-import { getAdminGateway } from "@/data";
+import { getAdminGateway, toGatewayError } from "@/data";
 import type { PaymentEnvironment } from "@/domain/types";
 import { useResource } from "@/lib/use-resource";
 
@@ -27,6 +27,7 @@ export function WhopPage() {
   const settings = useResource("admin:settings", () => gateway.getSettings());
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   if (connection.status === "loading" || settings.status === "loading") return <AdminPageSkeleton cards={3} />;
   if (connection.status === "error") return <AdminLoadError message={connection.error.message} onRetry={connection.reload} />;
@@ -39,11 +40,15 @@ export function WhopPage() {
     if (!settings.data) return;
     setSaving(true);
     setSaved(false);
+    setSaveError(null);
     try {
       const next = await gateway.saveSettings({ ...settings.data, environment });
       settings.setData(next);
       connection.setData({ ...whop, environment: next.environment });
       setSaved(true);
+    } catch (error) {
+      const failure = toGatewayError(error);
+      setSaveError(failure.fieldErrors?.environment ?? failure.message);
     } finally {
       setSaving(false);
     }
@@ -100,7 +105,7 @@ export function WhopPage() {
               ]}
             />
             <p className="text-sm text-ink-muted" aria-live="polite">
-              {saving ? "Salvando…" : saved ? "Preferência salva neste navegador (demonstração)." : null}
+              {saving ? "Salvando…" : saveError ? saveError : saved ? "Preferência salva no servidor." : null}
             </p>
             <ul className="space-y-1.5 text-sm text-ink-soft">
               <li>

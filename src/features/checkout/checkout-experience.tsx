@@ -18,7 +18,7 @@ import { CheckoutFooter, CheckoutHeader } from "@/components/checkout/store-chro
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
-import { getCheckoutGateway, isDemoData, type CheckoutState } from "@/data";
+import { checkoutMode, getCheckoutGateway, type CheckoutState } from "@/data";
 import { simulateDemoPaymentOutcome } from "@/data/demo/checkout-gateway";
 import { DEMO_CHECKOUT_TIPS, DEMO_SCENARIOS } from "@/data/demo/fixtures";
 import { linesWithPriceChange, unavailableLines } from "@/domain/cart";
@@ -36,15 +36,26 @@ function confirmationUrl(attemptId: string) {
   return `/checkout/confirmacao?tentativa=${encodeURIComponent(attemptId)}`;
 }
 
-function DemoStrip({ current }: { current: string | null }) {
-  if (!isDemoData) return null;
+/** Faixa de demonstração: aparece somente em cenários demo, nunca em carrinhos reais. */
+function DemoStrip({ current, demo }: { current: string | null; demo: boolean }) {
+  if (!demo) return null;
   return <DemoBar scenarios={DEMO_SCENARIOS} current={current} tips={DEMO_CHECKOUT_TIPS} />;
 }
 
-function PageFrame({ storefront, cartToken, children }: { storefront?: StorefrontInfo; cartToken: string | null; children: ReactNode }) {
+function PageFrame({
+  storefront,
+  cartToken,
+  demo,
+  children,
+}: {
+  storefront?: StorefrontInfo;
+  cartToken: string | null;
+  demo: boolean;
+  children: ReactNode;
+}) {
   return (
     <BrandTheme color={storefront?.appearance.primaryColor ?? "#1f4d3a"} className="flex min-h-screen flex-col">
-      <DemoStrip current={cartToken} />
+      <DemoStrip current={cartToken} demo={demo} />
       {storefront ? <CheckoutHeader storefront={storefront} /> : null}
       <main id="conteudo" className="flex-1">
         {children}
@@ -55,15 +66,24 @@ function PageFrame({ storefront, cartToken, children }: { storefront?: Storefron
 }
 
 export function CheckoutExperience({ cartToken }: { cartToken: string | null }) {
-  const gateway = getCheckoutGateway();
-  const storefront = useResource("storefront", () => gateway.getStorefront());
-  const controller = useCheckout(cartToken ?? "");
+  const mode = checkoutMode({ cartToken });
+  const demo = mode.ok && mode.demo;
+  const storefront = useResource(`storefront:${cartToken ?? ""}`, async () => getCheckoutGateway({ cartToken }).getStorefront());
+  const controller = useCheckout(cartToken);
   const { resource } = controller;
+
+  if (!mode.ok) {
+    return (
+      <PageFrame cartToken={cartToken} demo={false}>
+        <CheckoutLoadError title="Configuração incompleta" message={mode.message} />
+      </PageFrame>
+    );
+  }
 
   if (resource.status === "loading") {
     return (
       <div className="min-h-screen">
-        <DemoStrip current={cartToken} />
+        <DemoStrip current={cartToken} demo={demo} />
         <CheckoutSkeleton />
       </div>
     );
@@ -76,10 +96,12 @@ export function CheckoutExperience({ cartToken }: { cartToken: string | null }) 
         ? { title: "Este link de checkout expirou", message: "Por segurança, cada link de checkout vale por tempo limitado. Volte ao carrinho da loja e clique em finalizar compra para gerar um novo." }
         : code === "cart_not_found"
           ? { title: "Carrinho não encontrado", message: "O link pode estar incompleto. Volte ao carrinho da loja e clique em finalizar compra novamente." }
-          : { title: "Não foi possível carregar o checkout", message };
+          : code === "misconfigured"
+            ? { title: "Configuração incompleta", message }
+            : { title: "Não foi possível carregar o checkout", message };
     const retryable = code === "network";
     return (
-      <PageFrame storefront={storefront.data} cartToken={cartToken}>
+      <PageFrame storefront={storefront.data} cartToken={cartToken} demo={demo}>
         <CheckoutLoadError
           title={copy.title}
           message={copy.message}
@@ -92,7 +114,7 @@ export function CheckoutExperience({ cartToken }: { cartToken: string | null }) 
 
   if (resource.data.cart.lines.length === 0) {
     return (
-      <PageFrame storefront={resource.data.storefront} cartToken={cartToken}>
+      <PageFrame storefront={resource.data.storefront} cartToken={cartToken} demo={resource.data.cart.isDemo}>
         <EmptyCartState storeUrl={resource.data.storefront.storeUrl} />
       </PageFrame>
     );
@@ -193,7 +215,8 @@ function CheckoutReady({ state, controller, cartToken }: { state: CheckoutState;
   }
 
   async function handleDemoOutcome(outcome: DemoOutcome) {
-    if (payment.status !== "ready") return;
+    // Simulação existe somente para tentativas demonstrativas.
+    if (payment.status !== "ready" || !payment.attempt.isDemo) return;
     await simulateDemoPaymentOutcome(payment.attempt.id, outcome);
     if (outcome === "declined") actions.reportPaymentDeclined(DECLINE_MESSAGE);
     else router.push(confirmationUrl(payment.attempt.id));
@@ -229,7 +252,7 @@ function CheckoutReady({ state, controller, cartToken }: { state: CheckoutState;
       <a href="#conteudo" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-surface focus:px-3 focus:py-2">
         Pular para o formulário
       </a>
-      <DemoStrip current={cartToken} />
+      <DemoStrip current={cartToken} demo={cart.isDemo} />
       <CheckoutHeader storefront={storefront} />
       <MobileSummary {...summaryProps} />
 
